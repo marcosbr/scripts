@@ -1,15 +1,20 @@
 #!/usr/bin/python
 
 from obspy.core import read, UTCDateTime
-from obspy.arclink import Client
-from obspy.sac import SacIO
+#from obspy.arclink import Client
+from obspy.clients.arclink import Client
+#from obspy.sac import SacIO
+from obspy.sac import SACTrace
 from optparse import OptionParser
 from os import mkdir
 
+#######################################################
+## Changing to work with version of obspy >= 1.0 ######
+#######################################################
 
 # dumb message...
-print "\nBulk Data Downloader - UnB - 2014"
-print "Modified from Bulk Data Download - IAG-USP - 2012"
+print("\nBulk Data Downloader - UnB - 2014")
+print("Modified from Bulk Data Download - IAG-USP - 2012")
 
 
 # Usage string:
@@ -37,23 +42,21 @@ opts, args = parser.parse_args()
 mandatories = ["net", "sta", "b", "e"]
 for m in mandatories:
     if not opts.__dict__[m]:
-        print "\nMandatory option is missing: [ "+m+" ]\n"
+        print("\nMandatory option is missing: [ "+m+" ]\n")
         parser.print_help()
-        print "Ex: \n"
-        print "get24h.py -n BR -s IPMB -b 2013-350 -e 2013-355 -o 2 -a 3\n"
-        print "Marcelo Rocha - UnB - 2014/04/26 - V2.0\n"
+        print("Ex: \nget24h.py -n BR -s IPMB -b 2013-350 -e 2013-355 -o 2 -a 3\n")
+        print("Marcelo Rocha - UnB - 2014/04/26 - V2.0\n")
         exit(-1)
 
 
 # Checking Out File Option:
 outTypes = ["1", "2"]
 if opts.out not in outTypes:
-        print "\nOutfile type is not allowed\n"
+        print("\nOutfile type is not allowed\n")
         parser.print_help()
-        print "Ex: \n"
-        print "get24h.py -n BR -s IPMB -b 2013-350 -e 2013-355 -o 2 -a 3\n"
-        print "Marcelo Rocha - UnB - 2014/04/26 - V2.0\n"
-        exit(-1)
+        print("Ex: \nget24h.py -n BR -s IPMB -b 2013-350 -e 2013-355 -o 2 -a 3\n")
+        print("Marcelo Rocha - UnB - 2014/04/26 - V2.0\n")
+        exit(-2)
 
 
 out = opts.out
@@ -66,23 +69,22 @@ else :
 # Checking Arklink Server Option:
 arcTypes = ["1", "2", "3", "4"]
 if opts.arc not in arcTypes:
-        print "\nArclink type is not allowed\n"
+        print("\nArclink type is not allowed\n")
         parser.print_help()
-        print "Ex: \n"
-        print "get24h.py -n BR -s IPMB -b 2013-350 -e 2013-355 -o 2 -a 3\n"
-        print "Marcelo Rocha - UnB - 2014/04/26 - V2.0\n"
-        exit(-1)
+        print("Ex: \nget24h.py -n BR -s IPMB -b 2013-350 -e 2013-355 -o 2 -a 3\n")
+        print("Marcelo Rocha - UnB - 2014/04/26 - V2.0\n")
+        exit(-3)
 
 #Retrieve waveforms via ArcLink
 arc = opts.arc
 if arc == "1" :
     client = Client(host="164.41.28.154", port=18001, user="marcelorocha@unb.br")
 elif arc == "2":
-    client = Client(host="seisrequest.iag.usp.br", port=18001)
+    client = Client(host="seisrequest.iag.usp.br", port=18001,user="marcelorocha@unb.br")
 elif arc == "3" :
-    client = Client(host="rtserve.iris.washington.edu", port=18001)
+    client = Client(host="rtserve.iris.washington.edu", port=18001,user="marcelorocha@unb.br")
 elif arc == "4" :
-    client = Client(host="rsis1.on.br", port=18001)
+    client = Client(host="rsis1.on.br", port=18001,user="marcelorocha@unb.br")
 
 # Setting up Vars...
 net = opts.net
@@ -94,14 +96,14 @@ jday1 = int(opts.b[-3:])
 jday2 = int(opts.e[-3:])
 
 
-print jday2 - jday1, "day(s) to search for.\n"
+print(jday2 - jday1, "day(s) to search for.\n")
 
 
 
 while jday1 <= jday2 :
    
     try:
-        print "trying to download day", "%03d" % jday1, "..."
+        print("trying to download day", "%03d" % jday1, "...")
         st = client.getWaveform(net, sta, '*', cha, b,  b + 86390)
         st.merge(method=1, fill_value="interpolate")
         try:
@@ -116,11 +118,11 @@ while jday1 <= jday2 :
             jday = str("%03d" % tr.stats.starttime.julday)
             filename = net+"."+sta+"."+loc+"."+chan+".D."+year+"."+jday
             tr.write(sta+"/"+filename, format=_format)
-            print filename, "saved."
+            print(filename, "saved.")
     except:
-        print "... no data found."
+        print("... no data found.")
         pass
     jday1 += 1
     b = b + 24*3600
    
-print "\nno more data to retrieve.\n"
+print("\nno more data to retrieve.\n")
